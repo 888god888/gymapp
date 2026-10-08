@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="健身庫">
+<meta name="theme-color" content="#0f1115">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>健身資源庫</title>
+<style>
+:root{--bg:#0f1115;--card:#1a1d24;--tx:#f2f4f8;--mu:#9aa3b2;--ac:#ff6b35;--bd:#2a2f3a}
+@media(prefers-color-scheme:light){:root{--bg:#f4f5f8;--card:#fff;--tx:#14171d;--mu:#667085;--bd:#e3e6ec}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;line-height:1.6}
+body{padding:env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 24px)}
+.wrap{max-width:640px;margin:0 auto}
+h1{font-size:26px;margin:20px 0 4px}h2{font-size:20px;margin:0}h3{font-size:15px;margin:18px 0 6px;color:var(--ac)}
+.sub{color:var(--mu);font-size:14px;margin:0 0 18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.part{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:18px 14px;text-align:center;cursor:pointer}
+.part:active,.item:active{transform:scale(.97)}
+.part .e{font-size:34px}.part b{display:block;font-size:17px;margin-top:4px}.part span{font-size:12px;color:var(--mu)}
+.back{display:inline-block;color:var(--ac);padding:14px 0 4px;cursor:pointer;font-size:15px}
+.item{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:10px;margin:10px 0;cursor:pointer}
+.item img{width:84px;height:84px;object-fit:cover;border-radius:10px;background:#fff;flex:none}
+.item b{font-size:16px}.item small{display:block;color:var(--mu);font-size:12px}
+.demo{background:#fff;border-radius:14px;overflow:hidden;margin:12px 0;text-align:center}
+.demo img{width:100%;max-height:340px;object-fit:contain;display:block}
+.tag{display:inline-block;background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:2px 10px;font-size:12px;margin:0 6px 6px 0;color:var(--mu)}
+ol,ul{padding-left:22px;margin:4px 0}li{margin:5px 0}
+.warn li::marker{color:#e5484d}
+.links a{display:block;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 14px;margin:8px 0;color:var(--tx);text-decoration:none;font-size:14px}
+.foot{color:var(--mu);font-size:12px;margin-top:28px}
+</style></head><body><div class="wrap" id="app"></div>
+<script>
+const IMG="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
+const D=[
+{k:"chest",n:"胸",e:"💪",d:"胸大肌・上胸・下胸",x:[
+{n:"槓鈴臥推",q:"Barbell Bench Press",id:"Barbell_Bench_Press_-_Medium_Grip",eq:"臥推架+槓鈴",m:"胸大肌、三頭、前三角",
+s:["平躺長凳,眼睛位於槓下方,雙腳踩穩地面。","握距約 1.5 倍肩寬,肩胛後收下沉、微挺胸,像把肩膀「釘」在椅面。","吸氣控制下放至乳頭附近(約胸線),手肘與身體約 45–70°。","吐氣向上推起,於頂端手臂接近伸直但不鎖死。"],
+t:["全程臀部貼椅、背部保持自然弧度。","重量較大時務必使用安全桿或請人保護。"],w:["手肘外展 90° 容易傷肩。","槓鈴彈胸、臀部離椅借力。"]},
+{n:"上斜啞鈴臥推",q:"Incline Dumbbell Press",id:"Incline_Dumbbell_Press",eq:"可調式長凳+啞鈴",m:"上胸、前三角、三頭",
+s:["椅背調至約 30°,啞鈴放大腿上,坐下後以膝蓋助力把啞鈴帶到胸側。","肩胛後收,啞鈴在胸兩側、手肘約 45–60°。","吐氣向上推,兩顆啞鈴略往中間靠攏。","吸氣緩慢下放至胸部有拉伸感。"],
+t:["角度勿超過 45°,否則變成肩推。","下放時前臂保持與地面垂直。"],w:["手腕過度後折。","下放太快或左右不對稱。"]},
+{n:"蝴蝶機夾胸",q:"Pec Deck Machine",id:"Butterfly",eq:"蝴蝶機",m:"胸大肌(孤立)",
+s:["調整座椅高度,使握把與胸口同高。","背貼椅背,肩膀下沉,手肘微彎。","吐氣將雙臂向前夾攏,胸部用力收縮 1 秒。","吸氣緩慢回放至胸部有拉伸感即可。"],
+t:["想像「用手肘去碰手肘」比用手去推更好找胸。","適合安排在複合動作之後做收尾。"],w:["聳肩。","回放過深,肩關節前側被過度拉扯。"]}]},
+{k:"back",n:"背",e:"🦍",d:"背闊肌・斜方・下背",x:[
+{n:"高位下拉",q:"Lat Pulldown",id:"Wide-Grip_Lat_Pulldown",eq:"滑輪下拉機",m:"背闊肌、二頭、後三角",
+s:["調整腿墊,使大腿被固定住。","寬握(略寬於肩),身體微後傾約 10–15°。","先下沉肩胛,再用手肘往下、往身後拉,把槓拉到鎖骨上方。","停 1 秒後緩慢放回,感覺背闊肌被拉長。"],
+t:["想像「手只是掛鉤」,用手肘帶動。","不要用過重的重量導致身體大幅後仰。"],w:["把槓拉到頸後(肩關節風險)。","聳肩、甩身體借力。"]},
+{n:"坐姿划船",q:"Seated Cable Row",id:"Seated_Cable_Rows",eq:"坐姿划船機/滑輪",m:"中背、背闊肌、菱形肌",
+s:["雙腳踩踏板,膝蓋微彎,挺胸坐直。","手臂伸直取握把,肩胛略前延展。","吐氣將握把拉向肚臍,手肘貼身後夾,肩胛向脊椎靠攏。","吸氣緩慢放回,保持軀幹穩定。"],
+t:["拉的時候胸口往前頂、不要圓背。","頂端停頓 1 秒,感受肩胛內收。"],w:["用身體前後晃動借力。","手肘外張過多,變成練後三角。"]},
+{n:"槓鈴划船",q:"Bent Over Barbell Row",id:"Bent_Over_Barbell_Row",eq:"槓鈴+槓片",m:"背闊肌、中背、下背、二頭",
+s:["雙腳與肩同寬,握槓略寬於肩。","髖部後推、軀幹前傾約 45°,背部維持中立,膝蓋微彎。","吐氣將槓拉向下腹部,手肘貼近身體。","吸氣控制下放,但不讓背部圓掉。"],
+t:["核心繃緊,視線看斜前方地面。","重量先從輕開始練習髖鉸鏈姿勢。"],w:["圓背(下背受傷風險最高)。","站起來、用拉起來的反彈甩動槓鈴。"]}]},
+{k:"shoulder",n:"肩",e:"🏋️",d:"前束・中束・後束",x:[
+{n:"槓鈴肩推",q:"Barbell Overhead Press",id:"Barbell_Shoulder_Press",eq:"槓鈴/史密斯機",m:"三角肌、三頭、上胸",
+s:["握距略寬於肩,槓放在鎖骨上方,手肘在槓正下方偏前。","夾臀、縮腹,避免腰椎過度反弓。","吐氣垂直向上推,頭微微後閃讓槓走直線。","推到頂時頭回到槓下方,再緩慢下放回鎖骨。"],
+t:["可站姿或坐姿,新手建議坐姿有靠背。","推起時肩胛略上旋,有助肩關節健康。"],w:["腰過度後仰。","手肘過度外開或槓走成弧線。"]},
+{n:"啞鈴側平舉",q:"Dumbbell Lateral Raise",id:"Side_Lateral_Raise",eq:"啞鈴",m:"中三角",
+s:["站姿微前傾,雙手持輕啞鈴垂在身側。","手肘微彎,吐氣把啞鈴向外側抬起至約肩高。","小指側略高於拇指側,想像倒水。","吸氣 2–3 秒緩慢放下。"],
+t:["重量不用大,重點是控制與中三角收縮。","可改用滑輪做側平舉,張力更連續。"],w:["聳肩、用甩動借力。","抬得高過肩,斜方肌代償。"]},
+{n:"臉拉 Face Pull",q:"Face Pull",id:"Face_Pull",eq:"滑輪+繩索握把",m:"後三角、旋轉肌群、中斜方",
+s:["滑輪調到約臉部高度,雙手握繩索兩端,後退幾步使纜繩繃緊。","手肘抬高與肩同高。","吐氣將繩索拉向額頭兩側,同時外旋讓雙手拉開。","頂端停 1 秒,緩慢回放。"],
+t:["輕重量、多次數(12–20 下)最適合。","對改善圓肩、含胸姿勢有幫助。"],w:["身體後仰借力。","手肘低於手腕,變成划船。"]}]},
+{k:"arm",n:"手臂",e:"🦾",d:"二頭・三頭",x:[
+{n:"槓鈴彎舉",q:"Barbell Curl",id:"Barbell_Curl",eq:"直槓/EZ 槓",m:"肱二頭肌",
+s:["站姿,與肩同寬,掌心向前握槓,手臂自然下垂。","手肘固定在身體兩側。","吐氣將槓彎舉到胸前,頂端用力擠壓二頭。","吸氣 2–3 秒緩慢放下,手臂幾乎伸直。"],
+t:["腰背保持挺直,背靠牆可避免借力。","手腕不舒服可改用 EZ 槓。"],w:["身體後仰甩動。","手肘前移離開身體側邊。"]},
+{n:"啞鈴二頭彎舉",q:"Dumbbell Bicep Curl",id:"Dumbbell_Bicep_Curl",eq:"啞鈴",m:"肱二頭肌、肱肌",
+s:["站或坐姿,雙手各持啞鈴。","手肘貼住身體,掌心朝前。","吐氣彎舉並微微旋轉手腕(小指略向上)。","吸氣緩慢放下。"],
+t:["可左右交替,方便專注感受單邊。","不要用過重重量。"],w:["肩膀前傾借力。","放下時失去控制。"]},
+{n:"滑輪三頭下壓",q:"Triceps Pushdown",id:"Triceps_Pushdown",eq:"高位滑輪+繩索/直桿",m:"肱三頭肌",
+s:["站在滑輪前,雙手握把,手肘夾在身體兩側。","上臂固定不動,只讓前臂活動。","吐氣向下壓至手臂完全伸直,頂端擠壓三頭。","吸氣緩慢回到前臂與地面約平行或略高。"],
+t:["繩索版可在底端把兩端向外拉開,收縮更強。","身體微前傾、核心穩定。"],w:["手肘前後晃動。","身體壓著把手、用體重壓下去。"]}]},
+{k:"abs",n:"腹部",e:"🔥",d:"腹直肌・腹斜肌・核心",x:[
+{n:"滑輪捲腹",q:"Cable Crunch",id:"Cable_Crunch",eq:"高位滑輪+繩索",m:"腹直肌",
+s:["跪在滑輪前,雙手握繩索置於頭兩側。","髖部固定不動。","吐氣用腹肌把胸口向骨盆方向捲起,像把脊椎「捲成一顆球」。","吸氣緩慢還原,不要讓重量把你拉回去。"],
+t:["動作來自脊椎彎曲,而非髖部前後擺。","重量可逐步漸進,是腹肌少數能加重量的動作。"],w:["用手臂拉重量。","髖屈肌主導、變成往後坐。"]},
+{n:"腹部捲腹機",q:"Ab Crunch Machine",id:"Ab_Crunch_Machine",eq:"腹部捲腹機",m:"腹直肌",
+s:["調整座椅,使腹部位置對準轉軸。","雙腳固定,握把扶好。","吐氣用腹肌把上半身捲向骨盆,停 1 秒。","吸氣控制回放。"],
+t:["下巴微收,視線隨身體前移。","次數可做 12–20 下。"],w:["用手臂推。","動作過快、全靠慣性。"]},
+{n:"懸垂舉腿",q:"Hanging Leg Raise",id:"Hanging_Leg_Raise",eq:"單槓/懸吊架",m:"下腹、髖屈肌、前臂",
+s:["雙手握單槓,肩胛略下沉,身體穩定垂吊。","核心收緊,骨盆微向後捲。","吐氣把雙腿抬至水平或更高(膝蓋彎起較容易)。","吸氣緩慢放下,避免擺盪。"],
+t:["先從屈膝版本開始。","重點是「捲骨盆」而非單純抬腿。"],w:["身體前後大幅擺盪。","腰椎過度反弓。"]}]},
+{k:"leg",n:"下肢",e:"🦵",d:"股四頭・腿後側・臀・小腿",x:[
+{n:"槓鈴深蹲",q:"Barbell Back Squat",id:"Barbell_Squat",eq:"深蹲架+槓鈴",m:"股四頭、臀大肌、核心",
+s:["槓放在上背斜方肌上(高槓位),雙手握槓,離架後退兩三步。","雙腳與肩同寬,腳尖略外開。","吸氣憋住,髖與膝同時彎曲,像坐下去,膝蓋朝腳尖方向。","蹲至大腿約與地面平行或更低,腳掌踩穩地面站起。"],
+t:["全程胸挺、腹壓穩定。","務必設定好安全桿高度。"],w:["膝蓋內夾(膝內扣)。","腳跟離地、背部圓掉。"]},
+{n:"腿推機",q:"Leg Press",id:"Leg_Press",eq:"45° 腿推機",m:"股四頭、臀、腿後側",
+s:["背與臀完全貼椅背,腳踩踏板約與肩同寬。","解鎖後讓踏板緩慢下降,膝蓋朝腳尖方向彎曲。","降至約 90° 或下背開始離椅前停止。","吐氣用腳掌全面推起,頂端膝蓋不鎖死。"],
+t:["腳位越高越偏臀腿後側,越低越偏股四頭。","結束時務必把安全鎖扣回去。"],w:["臀部離椅、下背捲起。","膝蓋鎖死、重量過大。"]},
+{n:"羅馬尼亞硬舉",q:"Romanian Deadlift",id:"Romanian_Deadlift",eq:"槓鈴/啞鈴",m:"腿後側、臀大肌、下背",
+s:["站姿,雙手握槓於大腿前,膝蓋微彎且固定。","髖部向後推,槓沿大腿下滑,背部維持中立。","下降到腿後側有明顯拉伸(約膝下)。","臀部向前頂,把身體帶回站直。"],
+t:["想像用屁股去碰後方的牆。","槓全程貼近身體。"],w:["圓背。","變成深蹲,膝蓋彎太多。"]}]}
+];
+const SRC=[["ACE Fitness 動作資料庫","https://www.acefitness.org/resources/everyone/exercise-library/"],["NSCA 美國肌力體能協會","https://www.nsca.com/education/articles/"],["Jeff Nippard (YouTube)","https://www.youtube.com/@JeffNippard"],["Athlean-X (YouTube)","https://www.youtube.com/@ATHLEANX"],["動作圖庫:free-exercise-db(公有領域)","https://github.com/yuhonas/free-exercise-db"]];
+const app=document.getElementById("app");let timer;
+const fr=(id,i)=>IMG+id+"/"+i+".jpg";
+function anim(img,id){clearInterval(timer);let i=0;timer=setInterval(()=>{i^=1;img.src=fr(id,i)},900)}
+function home(){clearInterval(timer);app.innerHTML=`<h1>健身資源庫</h1><p class="sub">選擇訓練部位,查看器材用法與動作示範</p><div class="grid">${D.map(p=>`<div class="part" onclick="location.hash='#${p.k}'"><div class="e">${p.e}</div><b>${p.n}</b><span>${p.d}</span></div>`).join("")}</div><h3>參考資料來源</h3><div class="links">${SRC.map(s=>`<a href="${s[1]}" target="_blank" rel="noopener">${s[0]} ↗</a>`).join("")}</div><p class="foot">動作內容僅供一般參考,有傷病或不確定時請諮詢醫師或合格教練。</p>`}
+function part(k){clearInterval(timer);const p=D.find(x=>x.k==k);app.innerHTML=`<div class="back" onclick="location.hash=''">‹ 返回</div><h2>${p.e} ${p.n}</h2><p class="sub">${p.d}</p>${p.x.map((x,i)=>`<div class="item" onclick="location.hash='#${k}/${i}'"><img loading="lazy" src="${fr(x.id,0)}" alt="${x.n}"><div><b>${x.n}</b><small>${x.eq}</small><small>主要:${x.m}</small></div></div>`).join("")}`}
+function ex(k,i){const p=D.find(x=>x.k==k),x=p.x[i];const yt="https://www.youtube.com/results?search_query="+encodeURIComponent(x.q+" proper form tutorial");const yt2="https://www.youtube.com/results?search_query="+encodeURIComponent(x.n+" 教學 動作");
+app.innerHTML=`<div class="back" onclick="location.hash='#${k}'">‹ ${p.n}</div><h2>${x.n}</h2><p class="sub">${x.q}</p><div class="demo"><img id="dm" src="${fr(x.id,0)}" alt="${x.n} 示範"></div><span class="tag">🏋️ ${x.eq}</span><span class="tag">🎯 ${x.m}</span><h3>動作步驟</h3><ol>${x.s.map(s=>`<li>${s}</li>`).join("")}</ol><h3>訣竅</h3><ul>${x.t.map(s=>`<li>${s}</li>`).join("")}</ul><h3>常見錯誤</h3><ul class="warn">${x.w.map(s=>`<li>${s}</li>`).join("")}</ul><h3>延伸影片教學</h3><div class="links"><a href="${yt}" target="_blank" rel="noopener">▶ YouTube:${x.q} 英文教學</a><a href="${yt2}" target="_blank" rel="noopener">▶ YouTube:${x.n} 中文教學</a></div>`;anim(document.getElementById("dm"),x.id)}
+function route(){const h=location.hash.slice(1).split("/");scrollTo(0,0);if(!h[0])home();else if(h[1]!==undefined)ex(h[0],+h[1]);else part(h[0])}
+addEventListener("hashchange",route);route();
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
+</script></body></html>
