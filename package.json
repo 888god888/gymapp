@@ -1,0 +1,11 @@
+{
+  "name": "gym-guide",
+  "version": "9.0.0",
+  "private": true,
+  "description": "Static Traditional Chinese exercise reference PWA",
+  "scripts": {
+    "test": "node --test tests/data.test.cjs",
+    "test:browser": "node tests/browser.cjs"
+  },
+  "devDependencies": { "playwright": "1.62.1" }
+}
