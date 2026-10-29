@@ -23,8 +23,22 @@ const path = require('node:path');
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     BASE = 'http://127.0.0.1:' + server.address().port;
   }
-  const browser = await chromium.launch({ headless: true, ...(process.env.CHROMIUM_EXECUTABLE ? { executablePath: process.env.CHROMIUM_EXECUTABLE } : {}) });
+  const browser = await chromium.launch({ headless: true, ...(process.env.CHROMIUM_EXECUTABLE ? { executablePath: process.env.CHROMIUM_EXECUTABLE, args:['--no-sandbox','--disable-dev-shm-usage'] } : {}) });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'dark', reducedMotion: 'reduce' });
+  await context.route('https://www.youtube-nocookie.com/**', route=>route.fulfill({contentType:'text/html',body:'<html><body>Embedded player test double</body></html>'}));
+  await context.route('https://www.youtube.com/iframe_api', route=>route.fulfill({contentType:'text/javascript',body:`
+    window.__mockPlayers=[];
+    window.YT={ Player:function(frame,opts){
+      this.time=0;this.state=2;this.rate=1;this.destroyed=false;
+      this.getDuration=()=>26;this.getCurrentTime=()=>this.time;
+      this.getPlayerState=()=>this.state;this.getAvailablePlaybackRates=()=>[0.5,0.75,1];
+      this.setPlaybackRate=r=>this.rate=r;this.getPlaybackRate=()=>this.rate;
+      this.seekTo=t=>this.time=t;this.playVideo=()=>{this.state=1;setTimeout(()=>opts.events.onStateChange({data:1}),0);};
+      this.destroy=()=>{this.destroyed=true;frame.remove();};
+      window.__mockPlayers.push(this);setTimeout(()=>opts.events.onReady({target:this}),0);
+    }};
+    window.onYouTubeIframeAPIReady();
+  `}));
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
@@ -52,13 +66,40 @@ const path = require('node:path');
   const hash = await page.evaluate(() => location.hash);
   await page.click('[data-scroll="steps"]');
   assert.equal(await page.evaluate(() => location.hash), hash);
-  // The video is user initiated and has a direct external fallback.
-  assert.equal(await page.locator('iframe').count(), 0);
-  await page.route('https://www.youtube-nocookie.com/**', route => route.abort());
-  await page.click('[data-video]');
+  // Embedded video is present immediately; playback still requires a user action.
+  assert.equal(await page.locator('iframe').count(), 1);
   assert.match(await page.locator('iframe').getAttribute('src'), /eTCBSFlCJ_s/);
+  await page.waitForFunction(() => !document.querySelector('[data-player-action="replay"]').disabled);
+  await page.check('[data-prep="0"]');
+  assert.match(await page.locator('#prep-status').textContent(), /1 \/ 3/);
+  await page.click('#practice-toggle');
+  assert.equal(await page.locator('.step-card:visible').count(),1);
+  await page.click('#practice-next');
+  assert.match(await page.locator('#practice-progress').textContent(), /2 \/ 5/);
+  await page.click('#practice-toggle');
+  assert.equal(await page.locator('.step-card:visible').count(),5);
+  await page.click('.clip-editor summary');
+  await page.fill('[data-clip-start]','8'); await page.fill('[data-clip-end]','4');
+  await page.click('[data-player-action="apply"]');
+  assert.match(await page.locator('[data-player-status]').textContent(), /終點需晚/);
+  await page.fill('[data-clip-start]','3'); await page.fill('[data-clip-end]','13');
+  await page.click('[data-player-action="apply"]');
+  assert.match(await page.locator('[data-player-status]').textContent(), /3.0–13.0/);
+  await page.selectOption('[data-rate]','0.5');
+  assert.equal(await page.evaluate(()=>window.__mockPlayers.at(-1).rate),0.5);
+  await page.evaluate(()=>{const p=window.__mockPlayers.at(-1);p.time=13.5;p.state=1;});
+  await page.waitForFunction(()=>window.__mockPlayers.at(-1).time===3);
+  await page.uncheck('[data-repeat]');
+  await page.evaluate(()=>{const p=window.__mockPlayers.at(-1);p.time=14;p.state=1;});
+  await page.waitForTimeout(300);
+  assert.equal(await page.evaluate(()=>window.__mockPlayers.at(-1).time),14);
+  await page.click('[data-player-action="last-ten"]');
+  assert.match(await page.locator('[data-player-status]').textContent(), /4.0–14.0/);
+  await page.click('[data-player-action="full"]');
+  assert.equal(await page.evaluate(()=>window.__mockPlayers.at(-1).time),0);
   await page.click('.back');
   assert.equal(await page.inputValue('#search'), 'FACE PULL');
+  assert.ok(await page.evaluate(()=>window.__mockPlayers.every(p=>p.destroyed)));
   await page.click('.item');
   await page.reload({ waitUntil: 'domcontentloaded' });
   assert.equal(await page.locator('#save').getAttribute('aria-pressed'), 'true');
@@ -75,7 +116,9 @@ const path = require('node:path');
   for (const x of all) {
     await page.evaluate(id => { location.hash = 'exercise/' + encodeURIComponent(id); }, x.id);
     await page.waitForFunction(name => document.querySelector('h1')?.textContent === name, x.name);
-    assert.ok(await page.locator('.steps li').count() >= 3, x.id);
+    assert.equal(await page.locator('.steps li').count(),5,x.id);
+    assert.equal(await page.locator('[data-prep]').count(),3,x.id);
+    assert.equal(await page.locator('.corrections h3').count(),2,x.id);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `mobile overflow: ${x.id}`);
   }
   for (const hash of ['#unknown/0', '#chest/999', '#chest/-1', '#exercise/%E0%A4%A', '#%3Cimg%20src=x%20onerror=alert(1)%3E']) {
@@ -110,5 +153,5 @@ const path = require('node:path');
   assert.equal(errors.length, 0, errors.join('\n'));
   await browser.close();
   if (server) await new Promise(resolve => server.close(resolve));
-  console.log('PASS: 71 exercise routes, mobile overflow, filters, favorites, media fallbacks, malformed links/storage, offline shell');
+  console.log('PASS: 71 detailed routes, 390px layout, prep checklist, step mode, embedded player controls (mock API), AB validation/loop/reset/cleanup, favorites and offline shell');
 })().catch(e => { console.error(e); process.exit(1); });

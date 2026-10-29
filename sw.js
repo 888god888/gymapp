@@ -1,9 +1,9 @@
 // Bump VERSION whenever any shell asset changes. Only caches owned by this app are removed.
-const VERSION = 'v9';
+const VERSION = 'v10';
 const PREFIX = `gym-guide-${encodeURIComponent(self.registration.scope)}-`;
 const SHELL_CACHE = PREFIX + VERSION;
 const MEDIA_CACHE = PREFIX + 'media-v1';
-const SHELL = ['./', 'index.html', 'styles.css?v=9', 'data.js?v=9', 'videos.js?v=9', 'app.js?v=9', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
+const SHELL = ['./', 'index.html', 'styles.css?v=10', 'data.js?v=10', 'guides.js?v=10', 'media.js?v=10', 'videos.js?v=10', 'app.js?v=10', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(SHELL_CACHE).then(cache => cache.addAll(SHELL.map(path => new Request(path, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });

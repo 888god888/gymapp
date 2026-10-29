@@ -22,6 +22,7 @@
   const state = { query: '', part: '', equipment: '', media: '', onlySaved: false };
   let returnHash = '#';
   let toastTimer;
+  let mediaCleanups = [];
   function toast(message) {
     const el = document.getElementById('notice');
     el.textContent = message;
@@ -30,7 +31,7 @@
     toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
   }
   function footer() {
-    return `<footer class="footer"><p>動作幅度與器材設定需依身體比例、活動度及機型調整。先以輕重量練習；如有疼痛，停止並請合格教練或醫療人員協助。</p><p>v9 · 真人示範版 · 內容整理：2026.10.20　${link('https://github.com/888god888/gymapp', '專案與更新紀錄')}</p></footer>`;
+    return `<footer class="footer"><p>動作幅度與器材設定需依身體比例、活動度及機型調整。先以輕重量練習；如有疼痛，停止並請合格教練或醫療人員協助。</p><p>v10 · 逐步教學與片段重播 · 內容整理：2026.10.29　${link('https://github.com/888god888/gymapp', '專案與更新紀錄')}</p></footer>`;
   }
   function library() {
     document.title = '健身資源庫｜看懂動作，再開始練';
@@ -55,19 +56,34 @@
     document.getElementById('results').innerHTML = matches.length ? matches.map(x => `<a class="item" href="${urlFor(x)}">${x.photoId ? `<img class="thumb" loading="lazy" src="${PHOTO_ROOT}${encodeURIComponent(x.photoId)}/0.jpg" alt="${esc(x.n)} 姿勢參考">` : `<span class="thumb-placeholder" aria-hidden="true">🏋️</span>`}<div class="text"><b>${esc(x.n)}${saved.has(x.id) ? ' ☆' : ''}</b><small>${esc(x.eq)}</small><small>${esc(x.m)}</small><span class="media-tag">${videosFor(x).length ? '▶ 真人影片' : x.photoId ? '▧ 真人照片' : '☰ 文字步驟'}</span></div></a>`).join('') : `<div class="empty">${state.onlySaved && !saved.size ? '還沒有收藏。點開常練動作，按右上方 ☆ 即可加入。' : '沒有符合的動作，試試減少關鍵字或清除篩選。'}</div>`;
   }
   function videoCard(v, index) {
-    return `<div class="panel"><button class="video-cover" data-video="${index}" aria-label="播放 ${esc(v.publisher)} 的 ${esc(v.title)} 真人示範"><img src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" alt="${esc(v.title)} 影片預覽" loading="lazy"><span class="play-label"><span aria-hidden="true">▶</span>觀看真人示範</span></button><div class="video-links">${link(`https://www.youtube.com/watch?v=${v.id}`, '在 YouTube 開啟')}${link(v.source, `${v.publisher} 來源`)}</div><p class="caption">${esc(v.publisher)} · ${esc(v.title)}。可在播放器設定調整速度；若無法嵌入，請使用 YouTube 連結。</p></div>`;
+    const params = new URLSearchParams({rel:'0', playsinline:'1', enablejsapi:'1', origin:location.origin});
+    return `<div class="panel video-card" data-video-card="${index}"><h3>${esc(v.title)} <small>${v.duration ? `${v.duration} 秒原片` : '完整原片'}</small></h3><div class="video-frame"><iframe src="https://www.youtube-nocookie.com/embed/${v.id}?${esc(params)}" title="${esc(v.publisher)}：${esc(v.title)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+      <div class="player-tools"><button data-player-action="replay" data-needs-player disabled>↻ 重播</button><button data-player-action="last-ten" data-needs-player disabled>重播剛才 10 秒</button><label>速度<select data-rate data-needs-player disabled><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option></select></label><label class="check-inline"><input type="checkbox" data-repeat data-needs-player disabled checked>循環</label></div>
+      <p class="player-status caption" data-player-status role="status">可直接在頁面內播放。正在連接慢速與片段工具…</p>
+      <details class="clip-editor"><summary>只看某一段：設定起點／終點</summary><p class="caption">看完完整動作後，可設定自己想重看的區段。這是播放範圍，不會下載影片。</p><div class="clip-fields"><label>起點（秒）<input type="number" min="0" step="0.1" value="0" data-clip-start data-needs-player disabled></label><button data-player-action="mark-start" data-needs-player disabled>用目前時間作起點</button><label>終點（秒）<input type="number" min="1" step="0.1" data-clip-end data-needs-player disabled></label><button data-player-action="mark-end" data-needs-player disabled>用目前時間作終點</button></div><div class="player-tools"><button data-player-action="apply" data-needs-player disabled>循環這一段</button><button data-player-action="full" data-needs-player disabled>恢復完整原片</button></div></details>
+      <div class="video-links">${link(`https://www.youtube.com/watch?v=${v.id}`, '在 YouTube 開啟')}${link(v.source, `${v.publisher} 來源`)}</div><p class="caption">${esc(v.publisher)} · 保留原播放器。影片需連線，可能受發布者、廣告或地區限制；無法嵌入時使用上方連結。</p></div>`;
+  }
+  function guideMarkup(g) {
+    const phases = [
+      ['調器材、取重量', g.setup], ['擺好起始姿勢', [g.position]],
+      ['完成動作、判斷幅度', [g.drive, g.limit]], ['控制回程', [g.return]],
+      ['安全收尾', [g.finish]]
+    ];
+    return `<section id="steps"><div class="section-head"><h2>照著做：從準備到收尾</h2><button id="practice-toggle" aria-pressed="false">逐步練習</button></div><p class="caption">先讀完並以輕重量試做。逐步模式可一張一張確認；它不會判讀你的實際姿勢。</p><ol class="steps phase-list">${phases.map(([title, lines],i) => `<li class="step-card ${i === 0 ? 'is-current' : ''}"><span class="phase-number">${i+1}</span><div><h3>${title}</h3>${lines.map(line => `<p>${esc(line)}</p>`).join('')}</div></li>`).join('')}</ol><div id="practice-controls" class="practice-controls" hidden><button id="practice-prev">上一步</button><span id="practice-progress" role="status"></span><button id="practice-next">下一步</button></div><div class="two-col"><div class="panel"><h3>呼吸怎麼配</h3><p>${esc(g.breathing)}</p></div><div class="panel"><h3>先用這個節奏練控制</h3><p>${esc(g.tempo)}</p></div></div></section>
+    <section id="checks"><h2>做錯時，怎麼改</h2><div class="panel corrections">${g.corrections.map(c => `<div><h3>${esc(c.problem)}</h3><p><b>修正：</b>${esc(c.fix)}</p></div>`).join('')}</div><div class="two-col"><div class="panel"><h3>可能的出力感受</h3><p>${esc(g.feel)}</p><p class="caption">沒有痠感不等於沒練到；以路徑、控制與無疼痛為優先。</p></div><div class="panel easier"><h3>控制不了，先退一階</h3><p>${esc(g.easier)}</p></div></div></section>`;
   }
   function detail(x) {
     document.title = `${x.n}｜健身資源庫`;
     const videos = videosFor(x);
+    const g = x.guide;
     const sourceUrl = x.photoId ? `https://github.com/yuhonas/free-exercise-db/blob/${DB_REVISION}/exercises/${encodeURIComponent(x.photoId)}.json` : '';
     app.innerHTML = `<a class="back" href="${esc(returnHash)}">‹ 返回動作列表</a><div class="detail-header"><div><p class="eyebrow">${esc(x.partName)} / EXERCISE GUIDE</p><h1>${esc(x.n)}</h1><p class="sub">${esc(x.q)}</p></div><button class="star" id="save" aria-pressed="${saved.has(x.id)}" aria-label="${saved.has(x.id) ? '取消收藏' : '收藏動作'}">${saved.has(x.id) ? '★' : '☆'}</button></div><div><span class="tag">${esc(x.eq)}</span> <span class="tag">${esc(x.m)}</span></div>
-      <div class="cue"><small>這個動作，先記這一句</small><p>${esc(x.cue)}</p></div>
-      <nav class="anchor-nav" aria-label="動作內容"><a href="#demo" data-scroll="demo">真人示範</a><a href="#steps" data-scroll="steps">操作步驟</a><a href="#checks" data-scroll="checks">訣竅與錯誤</a><a href="#sources" data-scroll="sources">參考來源</a></nav>
-      <section id="demo"><div class="section-head"><h2>真人示範</h2><span class="count">${videos.length ? '影片＋姿勢參考' : '姿勢參考'}</span></div>${videos.length ? videos.map(videoCard).join('') : '<div class="no-video"><p>此動作尚未收錄對應的真人影片。</p><p class="caption">先參考下方照片與步驟；不以其他版本的動作代替示範。</p></div>'}
-      ${x.photoId ? `<section class="photo-panel"><h3>真人姿勢照片</h3><div class="pair">${[0, 1].map(i => `<figure><a href="${PHOTO_ROOT}${encodeURIComponent(x.photoId)}/${i}.jpg" target="_blank" rel="noopener noreferrer" aria-label="放大${esc(x.n)}姿勢照片 ${i + 1}"><img src="${PHOTO_ROOT}${encodeURIComponent(x.photoId)}/${i}.jpg" alt="${esc(x.n)} 姿勢照片 ${i + 1}" loading="lazy"></a><figcaption>姿勢 ${i === 0 ? 'A' : 'B'} · 點圖放大</figcaption></figure>`).join('')}</div><p class="caption">照片來源：free-exercise-db／${esc(x.photoName)}。兩張靜態照片不是連續動圖，也不表示唯一正確幅度；器械外觀與機型可能不同。</p></section>` : '<p class="caption">目前沒有相同版本的照片。</p>'}</section>
-      <section id="steps"><h2>怎麼做</h2><div class="panel"><ol class="steps">${x.s.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div></section>
-      <section id="checks"><h2>做的時候，注意這些</h2><div class="two-col"><div class="panel"><h3>控制要領</h3><ul>${x.t.map(s => `<li>${esc(s)}</li>`).join('')}</ul></div><div class="panel errors"><h3>常見錯誤</h3><ul>${x.w.map(s => `<li>${esc(s)}</li>`).join('')}</ul></div></div></section>
+      <div class="cue"><small>這個動作，先記這一句</small><p>${esc(g.checklist[1])}</p></div>
+      <nav class="anchor-nav" aria-label="動作內容"><a href="#prep" data-scroll="prep">組前確認</a><a href="#demo" data-scroll="demo">真人示範</a><a href="#steps" data-scroll="steps">逐步操作</a><a href="#checks" data-scroll="checks">訣竅與錯誤</a><a href="#sources" data-scroll="sources">參考來源</a></nav>
+      <section id="prep"><h2>每組開始前，確認這 3 件事</h2><div class="panel prep-panel">${g.checklist.map((line,i) => `<label class="prep-check"><input type="checkbox" data-prep="${i}"><span>${esc(line)}</span></label>`).join('')}<p class="caption" id="prep-status" role="status">已確認 0 / 3 · 每次開啟動作會重新開始，不代表姿勢已通過檢測。</p></div></section>
+      <section id="demo"><div class="section-head"><h2>真人示範</h2><span class="count">${videos.length ? '頁內播放 · 可慢速重播' : '姿勢參考'}</span></div>${videos.length ? videos.map(videoCard).join('') : '<div class="no-video"><p>此動作尚未收錄對應的真人影片。</p><p class="caption">先參考下方照片與步驟；不以其他版本的動作代替示範。</p></div>'}
+      ${x.photoId ? `<details class="photo-panel"><summary>真人姿勢照片（點開參考）</summary><div class="pair">${[0, 1].map(i => `<figure><a href="${PHOTO_ROOT}${encodeURIComponent(x.photoId)}/${i}.jpg" target="_blank" rel="noopener noreferrer" aria-label="放大${esc(x.n)}姿勢照片 ${i + 1}"><img src="${PHOTO_ROOT}${encodeURIComponent(x.photoId)}/${i}.jpg" alt="${esc(x.n)} 姿勢照片 ${i + 1}" loading="lazy"></a><figcaption>姿勢 ${i === 0 ? 'A' : 'B'} · 點圖放大</figcaption></figure>`).join('')}</div><p class="caption">照片來源：free-exercise-db／${esc(x.photoName)}。兩張靜態照片不是連續動圖，也不表示唯一正確幅度；器械外觀與機型可能不同。</p></details>` : '<p class="caption">目前沒有相同版本的照片。</p>'}</section>
+      ${guideMarkup(g)}
       <section id="sources"><h2>參考來源</h2><div class="panel">${x.sources.map(s => link(s.url, s.label, 'source-link')).join('')}${videos.map(v => link(v.source, `${v.publisher}：影片出處（${v.checked} 核對來源）`, 'source-link')).join('')}${x.photoId ? link(sourceUrl, `照片與原始動作資料：${x.photoName}`, 'source-link') : ''}${link('https://www.acefitness.org/resources/everyone/exercise-library/', 'ACE 動作資料庫（延伸閱讀）', 'source-link')}</div><p class="caption">文字為中文整理；參考來源不代表逐項經該機構審核。影片、照片可能採用不同教學節奏與幅度。</p></section>
       <section><h3>想找其他教學？</h3><p class="caption">以下是搜尋結果，未逐支核對內容。</p><div class="video-links">${link(`https://www.youtube.com/results?search_query=${encodeURIComponent(x.n + ' 教學 正確姿勢')}`, '搜尋中文教學')}${link(`https://www.youtube.com/results?search_query=${encodeURIComponent(x.q + ' tutorial')}`, '搜尋英文教學')}</div></section>${footer()}`;
     document.getElementById('save').addEventListener('click', e => {
@@ -81,19 +97,30 @@
       e.currentTarget.textContent = saved.has(x.id) ? '★' : '☆';
       toast(persisted ? (saved.has(x.id) ? '已加入收藏' : '已取消收藏') : '此瀏覽器無法儲存，收藏僅在本次開啟保留');
     });
-    app.querySelectorAll('[data-video]').forEach(button => button.addEventListener('click', () => {
-      const v = videos[Number(button.dataset.video)];
-      const frame = document.createElement('iframe');
-      frame.src = `https://www.youtube-nocookie.com/embed/${v.id}?rel=0&playsinline=1&autoplay=1`;
-      frame.title = `${v.publisher}：${v.title}`;
-      frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
-      frame.allowFullscreen = true;
-      frame.referrerPolicy = 'strict-origin-when-cross-origin';
-      const box = document.createElement('div');
-      box.className = 'video-frame';
-      box.append(frame);
-      button.replaceWith(box);
+    app.querySelectorAll('[data-prep]').forEach(input => input.addEventListener('change', () => {
+      const count = app.querySelectorAll('[data-prep]:checked').length;
+      document.getElementById('prep-status').textContent = `已確認 ${count} / 3 · 每次開啟動作會重新開始，不代表姿勢已通過檢測。`;
     }));
+    let practice = false, phase = 0;
+    const phaseList = app.querySelector('.phase-list');
+    const cards = [...app.querySelectorAll('.step-card')];
+    const drawPractice = () => {
+      phaseList.classList.toggle('practice-active', practice);
+      document.getElementById('practice-controls').hidden = !practice;
+      const toggle = document.getElementById('practice-toggle');
+      toggle.setAttribute('aria-pressed', String(practice));
+      toggle.textContent = practice ? '顯示完整流程' : '逐步練習';
+      cards.forEach((card,i) => card.classList.toggle('is-current', i === phase));
+      document.getElementById('practice-progress').textContent = `步驟 ${phase + 1} / ${cards.length}`;
+      document.getElementById('practice-prev').disabled = phase === 0;
+      document.getElementById('practice-next').disabled = phase === cards.length - 1;
+    };
+    document.getElementById('practice-toggle').onclick = () => { practice = !practice; drawPractice(); };
+    document.getElementById('practice-prev').onclick = () => { phase = Math.max(0,phase-1); drawPractice(); };
+    document.getElementById('practice-next').onclick = () => { phase = Math.min(cards.length-1,phase+1); drawPractice(); };
+    app.querySelectorAll('[data-video-card]').forEach(card => {
+      mediaCleanups.push(window.GymClips.mount(card, videos[Number(card.dataset.videoCard)]));
+    });
   }
   app.addEventListener('click', e => {
     const scroll = e.target.closest('[data-scroll]');
@@ -118,6 +145,8 @@
     image.replaceWith(replacement);
   }, true);
   function route() {
+    mediaCleanups.forEach(cleanup => cleanup());
+    mediaCleanups = [];
     const hash = location.hash.slice(1);
     let parts;
     try { parts = hash.split('/').map(decodeURIComponent); } catch { parts = []; }

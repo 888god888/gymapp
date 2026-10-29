@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const context = { window: {} };
 vm.createContext(context);
-for (const file of ['data.js', 'videos.js']) vm.runInContext(fs.readFileSync(file, 'utf8'), context);
+for (const file of ['data.js', 'guides.js', 'videos.js', 'media.js']) vm.runInContext(fs.readFileSync(file, 'utf8'), context);
 const data = context.window.GYM_DATA;
 const exercises = data.flatMap(p => p.x);
 const videos = context.window.V;
@@ -51,7 +51,7 @@ test('service worker removes only legacy or old app caches and preserves unrelat
   let claimed = false;
   const worker = {
     self: { registration: { scope }, addEventListener: (name, fn) => { handlers[name] = fn; }, clients: { claim: async () => { claimed = true; } } },
-    caches: { keys: async () => ['gym-v8', prefix + 'v8', prefix + 'v9', prefix + 'media-v1', 'another-app-cache'], delete: async key => removed.push(key) },
+    caches: { keys: async () => ['gym-v8', prefix + 'v8', prefix + 'v10', prefix + 'media-v1', 'another-app-cache'], delete: async key => removed.push(key) },
     URL, Request, Response,
   };
   vm.runInNewContext(fs.readFileSync('sw.js', 'utf8'), worker);
@@ -60,4 +60,29 @@ test('service worker removes only legacy or old app caches and preserves unrelat
   await work;
   assert.deepEqual(removed.sort(), ['gym-v8', prefix + 'v8'].sort());
   assert.ok(claimed);
+});
+
+test('every exercise includes setup, path, range, return, safe exit and actionable corrections', () => {
+  for (const x of exercises) {
+    const g=x.guide;
+    for (const f of ['position','drive','limit','return','finish','breathing','tempo','feel','easier']) assert.ok(typeof g[f] === 'string' && g[f].trim().length > 0, `${x.id}: ${f}`);
+    assert.equal(g.checklist.length,3);
+    assert.ok(g.setup.length>=2);
+    assert.ok(g.corrections.length>=2 && g.corrections.every(c=>c.problem && c.fix.length>12));
+  }
+  assert.equal(new Set(exercises.map(x=>x.guide.drive)).size,71);
+});
+test('clip times must be finite, ordered and inside the actual duration', () => {
+  const validate=context.window.GymClips.validateRange;
+  assert.equal(validate('',10,25),null);
+  assert.equal(validate(0,'',25),null);
+  for(const [a,b,d] of [[-1,5,25],[5,4,25],[0,30,25],[0,Infinity,25],[NaN,10,25],[0,10,0],[1,1.5,25]]) assert.equal(validate(a,b,d),null);
+  assert.equal(validate(3,13,25).start,3);
+  assert.equal(validate(0,25,25).end,25);
+});
+test('all new assets are included in the versioned offline shell', () => {
+  const shell=fs.readFileSync('sw.js','utf8'),html=fs.readFileSync('index.html','utf8');
+  for(const file of ['guides.js','media.js','data.js','videos.js','app.js','styles.css']) {
+    assert.ok(shell.includes(file+'?v=10')); assert.ok(html.includes(file+'?v=10'));
+  }
 });

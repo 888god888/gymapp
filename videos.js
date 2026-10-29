@@ -1,5 +1,5 @@
-// Direct demonstrations traced to each publisher. Checked 2026-10-20.
-// Each key is a stable exercise ID; do not substitute a different variant.
+// Publisher-hosted videos remain embedded; no video files are downloaded or redistributed.
+// duration: observed original video duration, not an invented curated edit.
 window.V = {
   "Barbell_Bench_Press_-_Medium_Grip": [
     {
@@ -8,7 +8,9 @@ window.V = {
       "title": "Barbell Bench Press",
       "source": "https://www.nasm.org/resource-center/exercise-library/barbell-bench-press",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 25,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Incline_Dumbbell_Press": [
@@ -18,7 +20,9 @@ window.V = {
       "title": "Two-Arm Incline Dumbbell Chest Press",
       "source": "https://www.nasm.org/resource-center/exercise-library/two-arm-incline-dumbbell-chest-press",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 24,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Cable_Crossover": [
@@ -28,7 +32,9 @@ window.V = {
       "title": "Cable Crossover",
       "source": "https://www.nasm.org/resource-center/exercise-library/cable-crossover",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 23,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Leverage_Chest_Press": [
@@ -38,7 +44,9 @@ window.V = {
       "title": "Chest Press Machine",
       "source": "https://www.nasm.org/resource-center/exercise-library/chest-press-machine",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 24,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Pushups": [
@@ -48,7 +56,9 @@ window.V = {
       "title": "Push-Up",
       "source": "https://www.nasm.org/resource-center/exercise-library/push-up",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 14,
+      "embedChecked": "2026-10-29"
     }
   ],
   "X_Incline_Barbell_Press": [
@@ -58,7 +68,9 @@ window.V = {
       "title": "Incline Barbell Bench Press",
       "source": "https://www.nasm.org/resource-center/exercise-library/incline-barbell-bench-press",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 24,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Pullups": [
@@ -68,7 +80,9 @@ window.V = {
       "title": "Pull-Up",
       "source": "https://www.nasm.org/resource-center/exercise-library/pull-up",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 20,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Barbell_Deadlift": [
@@ -78,7 +92,9 @@ window.V = {
       "title": "Barbell Deadlift",
       "source": "https://www.nasm.org/resource-center/exercise-library/barbell-deadlift",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 16,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Face_Pull": [
@@ -88,7 +104,9 @@ window.V = {
       "title": "Face Pull",
       "source": "https://www.nasm.org/resource-center/exercise-library/face-pull",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 26,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Barbell_Curl": [
@@ -98,7 +116,9 @@ window.V = {
       "title": "Barbell Bicep Curl",
       "source": "https://www.nasm.org/resource-center/exercise-library/barbell-bicep-curl",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 45,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Close-Grip_Barbell_Bench_Press": [
@@ -108,7 +128,9 @@ window.V = {
       "title": "Close Grip Bench Press",
       "source": "https://www.nasm.org/resource-center/exercise-library/close-grip-bench-press",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 25,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Plank": [
@@ -118,7 +140,9 @@ window.V = {
       "title": "Plank",
       "source": "https://www.nasm.org/resource-center/exercise-library/plank",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 14,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Romanian_Deadlift": [
@@ -128,7 +152,9 @@ window.V = {
       "title": "Romanian Deadlift (Barbell)",
       "source": "https://www.nasm.org/resource-center/exercise-library/romanian-deadlift-barbell",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 19,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Seated_Leg_Curl": [
@@ -138,7 +164,9 @@ window.V = {
       "title": "Seated Leg Curl",
       "source": "https://www.nasm.org/resource-center/exercise-library/seated-leg-curl",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 25,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Goblet_Squat": [
@@ -148,7 +176,9 @@ window.V = {
       "title": "Goblet Squat",
       "source": "https://www.nasm.org/resource-center/exercise-library/goblet-squat",
       "checked": "2026-10-20",
-      "catalogue": "https://www.nasm.org/documents/exercises.json"
+      "catalogue": "https://www.nasm.org/documents/exercises.json",
+      "duration": 29,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Barbell_Squat": [
@@ -157,7 +187,9 @@ window.V = {
       "publisher": "Catalyst Athletics",
       "title": "Back Squat",
       "source": "https://www.catalystathletics.com/exercise/77/Back-Squat/",
-      "checked": "2026-10-20"
+      "checked": "2026-10-20",
+      "duration": 94,
+      "embedChecked": "2026-10-29"
     }
   ],
   "Barbell_Shoulder_Press": [
@@ -166,7 +198,20 @@ window.V = {
       "publisher": "Catalyst Athletics",
       "title": "Press",
       "source": "https://www.catalystathletics.com/exercise/90/Press/",
-      "checked": "2026-10-20"
+      "checked": "2026-10-20",
+      "duration": 88,
+      "embedChecked": "2026-10-29"
+    }
+  ],
+  "Leg_Press": [
+    {
+      "id": "cDGOn-yfKJA",
+      "publisher": "NASM",
+      "title": "Leg Press",
+      "source": "https://www.nasm.org/resource-center/exercise-library/leg-press",
+      "checked": "2026-10-29",
+      "duration": 33,
+      "embedChecked": "2026-10-29"
     }
   ]
 };
