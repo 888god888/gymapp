@@ -213,5 +213,27 @@ window.V = {
       "duration": 33,
       "embedChecked": "2026-10-29"
     }
+  ],
+  "Lying_Leg_Curls": [
+    {
+      "id": "Dq5y4WEcqqo",
+      "publisher": "NASM",
+      "title": "Lying Leg Curl",
+      "source": "https://www.nasm.org/resource-center/exercise-library/lying-leg-curl",
+      "checked": "2026-11-09",
+      "duration": 21,
+      "embedChecked": "2026-11-09"
+    }
+  ],
+  "Calf_Press_On_The_Leg_Press_Machine": [
+    {
+      "id": "8k435cj30gc",
+      "publisher": "NASM",
+      "title": "Leg Press Calf Raise",
+      "source": "https://www.nasm.org/resource-center/exercise-library/leg-press-calf-raise",
+      "checked": "2026-11-09",
+      "duration": 26,
+      "embedChecked": "2026-11-09"
+    }
   ]
 };

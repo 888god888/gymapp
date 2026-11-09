@@ -1,13 +1,9 @@
-# v10 更新方式
+# v11 更新方式
 
-把本壓縮檔內的檔案解壓後，上傳覆蓋到原本 `gymapp` 專案根目錄即可。
+將壓縮檔解壓，上傳覆蓋到原本 gymapp 專案根目錄。這版必須新增 machines.js，並一起更新 index.html、app.js、styles.css、sw.js、videos.js；原本 data.js、guides.js、media.js、圖示與 manifest.json 也需保留。上傳整份最簡單。
 
-這版必須一起更新 `index.html`、`app.js`、`styles.css`、`sw.js`、`videos.js`，並新增 `guides.js`、`media.js`。不要只更新 `app.js`，以免缺少教學資料或播放器程式。
+91 個動作中，35 個固定器械、2 個史密斯；首頁預設器械，也可切換全部器材或只看本次新增 20 項。原有收藏與舊網址保留。
 
-`tests`、`package.json`、`package-lock.json` 只用於開發驗證，不是網站執行必需的檔案；上傳整份也不影響一般使用。
+新增俯臥腿彎舉與腿推提踵真人短片，總計 20 個動作有頁內影片，其他保留詳細步驟與可用照片。
 
-GitHub Pages 部署完成後，重新開啟 APP。若看到「新版已準備好」就按「更新 APP」。本機收藏會保留。
-
-18 個動作已有頁內真人播放器；其餘 53 個仍提供詳細教學與可用的姿勢照片。片段功能是在原播放器內選擇時間範圍，沒有下載或重新散布影片。
-
-影片需連線。發布者若限制嵌入，請用頁面中的「在 YouTube 開啟」連結。
+部署完成後重開 APP，有「新版已準備好」提示時按更新 APP。tests、package.json、package-lock.json 供開發檢查，網站平常執行不需要 npm。

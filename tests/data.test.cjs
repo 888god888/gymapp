@@ -4,13 +4,16 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const context = { window: {} };
 vm.createContext(context);
-for (const file of ['data.js', 'guides.js', 'videos.js', 'media.js']) vm.runInContext(fs.readFileSync(file, 'utf8'), context);
+for (const file of ['data.js', 'guides.js', 'machines.js', 'videos.js', 'media.js']) vm.runInContext(fs.readFileSync(file, 'utf8'), context);
 const data = context.window.GYM_DATA;
 const exercises = data.flatMap(p => p.x);
 const videos = context.window.V;
-test('all 71 stable exercise IDs and legacy index positions are retained', () => {
-  assert.deepEqual(Array.from(data, p => p.x.length), [13, 15, 15, 9, 8, 11]);
-  assert.equal(new Set(exercises.map(x => x.id)).size, 71);
+test('all original 71 links retain their exercise, with 20 appended machine guides', () => {
+  const legacy=JSON.parse(fs.readFileSync('tests/legacy-ids.json','utf8'));
+  for(const p of legacy) assert.deepEqual(Array.from(data.find(part=>part.k===p.k).x.slice(0,p.ids.length),x=>x.id),p.ids);
+  assert.equal(exercises.length,91);
+  assert.equal(new Set(exercises.map(x=>x.id)).size,91);
+  assert.equal(exercises.filter(x=>x.added==='2026-11-09').length,20);
   for (const x of exercises) {
     for (const field of ['id', 'n', 'q', 'eq', 'm', 'cue', 'equipment']) assert.ok(x[field], `${x.id}: ${field}`);
     for (const field of ['s', 't', 'w']) assert.ok(Array.isArray(x[field]) && x[field].every(s => s.trim()), `${x.id}: ${field}`);
@@ -51,7 +54,7 @@ test('service worker removes only legacy or old app caches and preserves unrelat
   let claimed = false;
   const worker = {
     self: { registration: { scope }, addEventListener: (name, fn) => { handlers[name] = fn; }, clients: { claim: async () => { claimed = true; } } },
-    caches: { keys: async () => ['gym-v8', prefix + 'v8', prefix + 'v10', prefix + 'media-v1', 'another-app-cache'], delete: async key => removed.push(key) },
+    caches: { keys: async () => ['gym-v8', prefix + 'v8', prefix + 'v11', prefix + 'media-v1', 'another-app-cache'], delete: async key => removed.push(key) },
     URL, Request, Response,
   };
   vm.runInNewContext(fs.readFileSync('sw.js', 'utf8'), worker);
@@ -70,7 +73,7 @@ test('every exercise includes setup, path, range, return, safe exit and actionab
     assert.ok(g.setup.length>=2);
     assert.ok(g.corrections.length>=2 && g.corrections.every(c=>c.problem && c.fix.length>12));
   }
-  assert.equal(new Set(exercises.map(x=>x.guide.drive)).size,71);
+  assert.equal(new Set(exercises.map(x=>x.guide.drive)).size,91);
 });
 test('clip times must be finite, ordered and inside the actual duration', () => {
   const validate=context.window.GymClips.validateRange;
@@ -82,7 +85,31 @@ test('clip times must be finite, ordered and inside the actual duration', () => 
 });
 test('all new assets are included in the versioned offline shell', () => {
   const shell=fs.readFileSync('sw.js','utf8'),html=fs.readFileSync('index.html','utf8');
-  for(const file of ['guides.js','media.js','data.js','videos.js','app.js','styles.css']) {
-    assert.ok(shell.includes(file+'?v=10')); assert.ok(html.includes(file+'?v=10'));
+  for(const file of ['guides.js','machines.js','media.js','data.js','videos.js','app.js','styles.css']) {
+    assert.ok(shell.includes(file+'?v=11')); assert.ok(html.includes(file+'?v=11'));
   }
+});
+
+test('machine categories include dedicated cable stations and distinguish assisted loads', () => {
+  const byID=Object.fromEntries(exercises.map(x=>[x.id,x]));
+  assert.equal(byID['Wide-Grip_Lat_Pulldown'].equipment,'machine');
+  assert.equal(byID.Seated_Cable_Rows.equipment,'machine');
+  assert.equal(byID.Smith_Machine_Squat.equipment,'smith');
+  assert.equal(byID.Cable_Crossover.equipment,'cable');
+  for(const id of ['M_Assisted_Pullup','M_Assisted_Dip']) {
+    assert.match(byID[id].machineTip,/越(?:大|重).*越多/);
+    assert.match(byID[id].guide.finish,/固定台階|固定台/);
+    assert.equal(byID[id].loading,'配重提供輔助');
+  }
+  assert.match(byID.Thigh_Abductor.machineTip,/外展.*向外/);
+  assert.match(byID.Thigh_Adductor.machineTip,/內收.*向內/);
+  for(const x of exercises.filter(x=>x.added)) {
+    assert.ok(x.recognize && x.machineTip && x.sources[0]?.url);
+    assert.ok(['machine','smith'].includes(x.equipment));
+  }
+});
+test('new demonstrations must not substitute seated and lying leg-curl versions', () => {
+  assert.equal(videos.Lying_Leg_Curls[0].id,'Dq5y4WEcqqo');
+  assert.notEqual(videos.Lying_Leg_Curls[0].id,videos.Seated_Leg_Curl[0].id);
+  assert.equal(videos.Calf_Press_On_The_Leg_Press_Machine[0].id,'8k435cj30gc');
 });

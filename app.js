@@ -9,7 +9,7 @@
   const DB_REVISION = 'f00c92c7dcf1216a928a52c3706c7ce8e2f71ed5';
   const PHOTO_ROOT = `https://raw.githubusercontent.com/yuhonas/free-exercise-db/${DB_REVISION}/exercises/`;
   const EXERCISES = DATA.flatMap(part => part.x.map((exercise, index) => ({ ...exercise, part: part.k, partName: part.n, index })));
-  const EQUIPMENT = { body: '徒手／單雙槓', dumbbell: '啞鈴／壺鈴', barbell: '槓鈴／EZ 槓', cable: '滑輪', machine: '固定器械', other: '其他' };
+  const EQUIPMENT = { body: '徒手／單雙槓', dumbbell: '啞鈴／壺鈴', barbell: '槓鈴／EZ 槓', machines: '固定器械＋史密斯', machine: '固定器械', smith: '史密斯機', cable: '滑輪／龍門架', other: '其他／支撐器材' };
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const link = (url, label, cls = '') => `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} ↗</a>`;
   const urlFor = x => `#exercise/${encodeURIComponent(x.id)}`;
@@ -19,7 +19,7 @@
     const stored = JSON.parse(localStorage.getItem('gym-favorites-v1') || '[]');
     if (Array.isArray(stored)) saved = new Set(stored.filter(id => EXERCISES.some(x => x.id === id)));
   } catch { /* Storage can be unavailable or contain malformed data. */ }
-  const state = { query: '', part: '', equipment: '', media: '', onlySaved: false };
+  const state = { query: '', part: '', equipment: 'machines', media: '', onlySaved: false, onlyNew: false };
   let returnHash = '#';
   let toastTimer;
   let mediaCleanups = [];
@@ -31,13 +31,13 @@
     toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
   }
   function footer() {
-    return `<footer class="footer"><p>動作幅度與器材設定需依身體比例、活動度及機型調整。先以輕重量練習；如有疼痛，停止並請合格教練或醫療人員協助。</p><p>v10 · 逐步教學與片段重播 · 內容整理：2026.10.29　${link('https://github.com/888god888/gymapp', '專案與更新紀錄')}</p></footer>`;
+    return `<footer class="footer"><p>動作幅度與器材設定需依身體比例、活動度及機型調整。先以輕重量練習；如有疼痛，停止並請合格教練或醫療人員協助。</p><p>v11 · 器械擴充版 · 內容整理：2026.11.09　${link('https://github.com/888god888/gymapp', '專案與更新紀錄')}</p></footer>`;
   }
   function library() {
     document.title = '健身資源庫｜看懂動作，再開始練';
-    app.innerHTML = `<div id="update-slot"></div><div class="hero"><p class="eyebrow">MOVE WITH CONFIDENCE</p><h1>${state.onlySaved ? '你的常練動作' : '看懂動作，<br>再開始練。'}</h1><p class="sub">先找器材，再看示範。把正確的操作重點帶進每一組。</p><div class="stats"><span class="tag">${EXERCISES.length} 個動作</span><span class="tag accent">${EXERCISES.filter(x => videosFor(x).length).length} 個附真人影片</span><span class="tag">☆ 可收藏</span></div></div>
+    app.innerHTML = `<div id="update-slot"></div><div class="hero"><p class="eyebrow">MOVE WITH CONFIDENCE</p><h1>${state.onlySaved ? '你的常練動作' : '器械優先，<br>調好再開始。'}</h1><p class="sub">先調座椅、靠墊與安全擋，再照步驟練。首次開啟預設顯示固定器械與史密斯。</p><div class="stats"><span class="tag">${EXERCISES.length} 個動作</span><span class="tag accent">${EXERCISES.filter(x => videosFor(x).length).length} 個附真人影片</span><span class="tag">${EXERCISES.filter(x=>['machine','smith'].includes(x.equipment)).length} 個器械／史密斯動作</span></div></div>
       <div class="search-box"><span aria-hidden="true">⌕</span><label class="sr-only" for="search">搜尋動作、肌群或器材</label><input id="search" type="search" placeholder="搜尋動作、肌群或器材，例如：划船" value="${esc(state.query)}" autocomplete="off"></div>
-      <span class="filter-label">訓練部位</span><div class="chips" aria-label="訓練部位篩選"><button class="chip" data-part="" aria-pressed="${!state.part}">全部</button>${DATA.map(p => `<button class="chip" data-part="${p.k}" aria-pressed="${state.part === p.k}">${p.e} ${p.n}</button>`).join('')}</div>
+      <div class="machine-shortcuts"><button id="new-machines" aria-pressed="${state.onlyNew}">只看本次新增 20 項</button><button id="machine-filter">固定器械＋史密斯</button><button id="all-equipment">所有器材</button></div><span class="filter-label">訓練部位</span><div class="chips" aria-label="訓練部位篩選"><button class="chip" data-part="" aria-pressed="${!state.part}">全部</button>${DATA.map(p => `<button class="chip" data-part="${p.k}" aria-pressed="${state.part === p.k}">${p.e} ${p.n}</button>`).join('')}</div>
       <div class="filters-row"><label>器材<select id="equipment"><option value="">全部器材</option>${Object.entries(EQUIPMENT).map(([key, name]) => `<option value="${key}" ${state.equipment === key ? 'selected' : ''}>${name}</option>`).join('')}</select></label><label>示範內容<select id="media"><option value="">全部動作</option><option value="video" ${state.media === 'video' ? 'selected' : ''}>附真人影片</option></select></label></div>
       <div class="section-head"><h2>${state.onlySaved ? '已收藏' : '動作一覽'}</h2><div class="section-actions"><span id="result-count" class="count" role="status"></span><button id="reset">清除篩選</button></div></div><p class="results-note">點開動作查看要領。影片標示來源；照片是姿勢參考，不能呈現完整動作軌跡。</p><div id="results" class="results"></div>${footer()}`;
     document.getElementById('search').addEventListener('input', e => { state.query = e.target.value; renderResults(); });
@@ -49,11 +49,11 @@
   function renderResults() {
     const terms = state.query.normalize('NFKC').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
     const matches = EXERCISES.filter(x => {
-      const haystack = `${x.n} ${x.q} ${x.eq} ${x.m} ${x.partName}`.normalize('NFKC').toLocaleLowerCase();
-      return terms.every(t => haystack.includes(t)) && (!state.part || x.part === state.part) && (!state.equipment || x.equipment === state.equipment) && (!state.media || videosFor(x).length) && (!state.onlySaved || saved.has(x.id));
+      const haystack = `${x.n} ${x.q} ${x.eq} ${x.m} ${x.partName} ${(x.aliases||[]).join(' ')}`.normalize('NFKC').toLocaleLowerCase();
+      return terms.every(t => haystack.includes(t)) && (!state.part || x.part === state.part) && (!state.equipment || x.equipment === state.equipment || (state.equipment === 'machines' && ['machine','smith'].includes(x.equipment))) && (!state.onlyNew || x.added === '2026-11-09') && (!state.media || videosFor(x).length) && (!state.onlySaved || saved.has(x.id));
     });
     document.getElementById('result-count').textContent = `${matches.length} 個動作`;
-    document.getElementById('results').innerHTML = matches.length ? matches.map(x => `<a class="item" href="${urlFor(x)}">${x.photoId ? `<img class="thumb" loading="lazy" src="${PHOTO_ROOT}${encodeURIComponent(x.photoId)}/0.jpg" alt="${esc(x.n)} 姿勢參考">` : `<span class="thumb-placeholder" aria-hidden="true">🏋️</span>`}<div class="text"><b>${esc(x.n)}${saved.has(x.id) ? ' ☆' : ''}</b><small>${esc(x.eq)}</small><small>${esc(x.m)}</small><span class="media-tag">${videosFor(x).length ? '▶ 真人影片' : x.photoId ? '▧ 真人照片' : '☰ 文字步驟'}</span></div></a>`).join('') : `<div class="empty">${state.onlySaved && !saved.size ? '還沒有收藏。點開常練動作，按右上方 ☆ 即可加入。' : '沒有符合的動作，試試減少關鍵字或清除篩選。'}</div>`;
+    document.getElementById('results').innerHTML = matches.length ? matches.map(x => `<a class="item" href="${urlFor(x)}">${x.photoId ? `<img class="thumb" loading="lazy" src="${PHOTO_ROOT}${encodeURIComponent(x.photoId)}/0.jpg" alt="${esc(x.n)} 姿勢參考">` : `<span class="thumb-placeholder" aria-hidden="true">🏋️</span>`}<div class="text"><b>${esc(x.n)}${saved.has(x.id) ? ' ☆' : ''}${x.added ? ' · 新增' : ''}</b><small>${esc(x.eq)}</small><small>${esc(x.m)}</small><span class="media-tag">${videosFor(x).length ? '▶ 真人影片' : x.photoId ? '▧ 真人照片' : '☰ 文字步驟'}</span></div></a>`).join('') : `<div class="empty">${state.onlySaved && !saved.size ? '還沒有收藏。點開常練動作，按右上方 ☆ 即可加入。' : '沒有符合的動作，試試減少關鍵字或清除篩選。'}</div>`;
   }
   function videoCard(v, index) {
     const params = new URLSearchParams({rel:'0', playsinline:'1', enablejsapi:'1', origin:location.origin});
@@ -78,6 +78,7 @@
     const g = x.guide;
     const sourceUrl = x.photoId ? `https://github.com/yuhonas/free-exercise-db/blob/${DB_REVISION}/exercises/${encodeURIComponent(x.photoId)}.json` : '';
     app.innerHTML = `<a class="back" href="${esc(returnHash)}">‹ 返回動作列表</a><div class="detail-header"><div><p class="eyebrow">${esc(x.partName)} / EXERCISE GUIDE</p><h1>${esc(x.n)}</h1><p class="sub">${esc(x.q)}</p></div><button class="star" id="save" aria-pressed="${saved.has(x.id)}" aria-label="${saved.has(x.id) ? '取消收藏' : '收藏動作'}">${saved.has(x.id) ? '★' : '☆'}</button></div><div><span class="tag">${esc(x.eq)}</span> <span class="tag">${esc(x.m)}</span></div>
+      ${x.recognize ? `<section class="panel machine-info"><h2>先認這台器械</h2><p>${esc(x.recognize)}</p><p class="machine-tip"><b>設定重點：</b>${esc(x.machineTip)}</p><p class="caption">負重方式：${esc(x.loading)}。外觀與調整方式仍以現場機台圖示為準。</p></section>` : ''}
       <div class="cue"><small>這個動作，先記這一句</small><p>${esc(g.checklist[1])}</p></div>
       <nav class="anchor-nav" aria-label="動作內容"><a href="#prep" data-scroll="prep">組前確認</a><a href="#demo" data-scroll="demo">真人示範</a><a href="#steps" data-scroll="steps">逐步操作</a><a href="#checks" data-scroll="checks">訣竅與錯誤</a><a href="#sources" data-scroll="sources">參考來源</a></nav>
       <section id="prep"><h2>每組開始前，確認這 3 件事</h2><div class="panel prep-panel">${g.checklist.map((line,i) => `<label class="prep-check"><input type="checkbox" data-prep="${i}"><span>${esc(line)}</span></label>`).join('')}<p class="caption" id="prep-status" role="status">已確認 0 / 3 · 每次開啟動作會重新開始，不代表姿勢已通過檢測。</p></div></section>
@@ -131,8 +132,15 @@
       app.querySelectorAll('[data-part]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.part === state.part)));
       renderResults();
     }
+    if (e.target.closest('#new-machines')) {
+      state.onlyNew = !state.onlyNew;
+      if (state.onlyNew) Object.assign(state,{query:'',part:'',equipment:'machines',media:''});
+      library();
+    }
+    if (e.target.closest('#machine-filter')) { Object.assign(state,{equipment:'machines',onlyNew:false}); library(); }
+    if (e.target.closest('#all-equipment')) { Object.assign(state,{equipment:'',onlyNew:false}); library(); }
     if (e.target.closest('#reset')) {
-      Object.assign(state, { query: '', equipment: '', part: '', media: '' });
+      Object.assign(state, { query: '', equipment: '', part: '', media: '', onlyNew: false });
       library();
     }
   });
@@ -157,6 +165,7 @@
       if (!document.getElementById('results')) returnHash = DATA.some(p => p.k === parts[0]) ? `#${x.part}` : '#';
       detail(x);
     } else if (parts.length === 1 && ['', 'saved', ...DATA.map(p => p.k)].includes(parts[0])) {
+      if (parts[0] === 'saved' && !state.onlySaved) Object.assign(state,{equipment:'',onlyNew:false,part:'',query:'',media:''});
       state.onlySaved = parts[0] === 'saved';
       if (DATA.some(p => p.k === parts[0])) state.part = parts[0];
       returnHash = location.hash || '#';

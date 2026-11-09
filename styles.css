@@ -48,3 +48,12 @@ summary { cursor:pointer; line-height:1.6; padding:.6rem 0; font-weight:600; }
 
 .phase-list .step-card::before { content:none; }
 @media(prefers-color-scheme:light){.corrections h3{color:#8d400d}.clip-fields input{background:var(--bg);color:var(--tx)}.phase-list .step-card{border-color:var(--bd)}}
+/* v11 machine catalogue */
+.machine-shortcuts { display:flex; gap:8px; flex-wrap:wrap; margin:14px 0; }
+.machine-shortcuts button { font-size:13px; padding:8px 12px; }
+.machine-shortcuts [aria-pressed=true] { border-color:var(--ac); color:var(--ac); }
+.machine-info { margin:22px 0; }
+.machine-info h2 { font-size:18px; }
+.machine-info p { font-size:14px; line-height:1.85; }
+.machine-info .machine-tip { border-left:3px solid var(--ac); padding-left:12px; }
+.machine-info .caption { font-size:12px; }
